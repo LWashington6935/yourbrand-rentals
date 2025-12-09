@@ -1,0 +1,112 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String?
+  email         String         @unique
+  phone         String?
+  role          UserRole       @default(CUSTOMER)
+  ownerProfile  OwnerProfile?
+  bookings      Booking[]
+  createdAt     DateTime       @default(now())
+
+  // 🔐 auth fields
+  emailVerified DateTime?
+  passwordHash  String?
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  OWNER
+}
+
+model OwnerProfile {
+  id            String        @id @default(cuid())
+  user          User          @relation(fields: [userId], references: [id])
+  userId        String        @unique
+  displayName   String
+  bio           String?
+  city          String
+  isCompany     Boolean       @default(false)
+
+  cars          Car[]
+  createdAt     DateTime      @default(now())
+}
+
+model Car {
+  id             String        @id @default(cuid())
+  owner          OwnerProfile  @relation(fields: [ownerId], references: [id])
+  ownerId        String
+
+  title          String
+  brand          String
+  model          String
+  year           Int
+  type           CarType
+  seats          Int
+  transmission   Transmission
+  pricePerDay    Int
+  city           String
+  mainImageUrl   String
+  imageUrls      String[]
+  description    String
+  isActive       Boolean       @default(true)
+  isCompanyOwned Boolean       @default(false)
+
+  bookings       Booking[]
+  createdAt      DateTime      @default(now())
+}
+
+enum CarType {
+  SEDAN
+  SUV
+  TRUCK
+  VAN
+  LUXURY
+  SPORTS
+}
+
+enum Transmission {
+  AUTOMATIC
+  MANUAL
+}
+
+model Booking {
+  id             String         @id @default(cuid())
+  user           User           @relation(fields: [userId], references: [id])
+  userId         String
+
+  car            Car            @relation(fields: [carId], references: [id])
+  carId          String
+
+  startDate      DateTime
+  endDate        DateTime
+  pickupLocation PickupLocation
+  totalPrice     Int
+  status         BookingStatus  @default(PENDING)
+  paymentId      String?
+
+  createdAt      DateTime       @default(now())
+}
+
+enum PickupLocation {
+  DOWNTOWN
+  CMH_AIRPORT
+  EASTON
+  POLARIS
+  DELIVERY
+}
+
+enum BookingStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
