@@ -6,9 +6,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { BookingStatus, PickupLocation } from "@prisma/client";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2024-06-20",
-});
+// ✅ Let Stripe use your account default API version
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -37,7 +36,11 @@ export async function POST(req: NextRequest) {
 
   const startDate = new Date(startDateStr);
   const endDate = new Date(endDateStr);
-  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || endDate <= startDate) {
+  if (
+    isNaN(startDate.getTime()) ||
+    isNaN(endDate.getTime()) ||
+    endDate <= startDate
+  ) {
     return NextResponse.redirect(`/cars/${carId}?error=Invalid+dates`);
   }
 
