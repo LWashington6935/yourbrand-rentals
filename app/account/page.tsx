@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable react/no-unescaped-entities */
+
 import Link from "next/link";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
@@ -14,12 +16,13 @@ export default function AccountPage() {
     session?.user?.name || (session?.user?.email?.split("@")[0] ?? "Guest");
   const userEmail = session?.user?.email ?? "";
 
-  const initials = userName
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("") || "YB";
+  const initials =
+    userName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("") || "YB";
 
   // While NextAuth is checking the session
   if (status === "loading") {
@@ -158,7 +161,7 @@ export default function AccountPage() {
           </div>
         </div>
 
-        {/* Quick Stats (still demo for now) */}
+        {/* Quick Stats (demo) */}
         <div className="grid gap-4 md:grid-cols-3">
           <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3">
@@ -322,7 +325,7 @@ export default function AccountPage() {
           </div>
 
           <div className="p-6 md:p-8">
-            {/* Bookings Tab (still demo content) */}
+            {/* Bookings Tab (demo) */}
             {activeTab === "bookings" && (
               <div className="space-y-6">
                 <div>
@@ -449,7 +452,7 @@ export default function AccountPage() {
               </div>
             )}
 
-            {/* Profile Tab (still demo values) */}
+            {/* Profile Tab (demo) */}
             {activeTab === "profile" && (
               <div className="space-y-6">
                 <div>
