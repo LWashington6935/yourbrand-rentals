@@ -33,10 +33,9 @@ export default async function BookingSuccessPage({
     return notFound();
   }
 
-  // ✅ From here on, tell TypeScript "booking is definitely not null"
   const b = booking!;
 
-  // Fire-and-forget email – if it fails, we just log it
+  // Fire-and-forget email – no totalPrice here (type doesn’t allow it)
   try {
     await sendBookingNotificationEmail({
       bookingId: b.id,
@@ -44,7 +43,6 @@ export default async function BookingSuccessPage({
       carCity: b.car.city,
       startDate: b.startDate,
       endDate: b.endDate,
-      totalPrice: b.totalPrice,
       customerEmail: b.user.email,
     });
   } catch (err) {
