@@ -1,88 +1,115 @@
 // app/bookings/success/page.tsx
+import Link from "next/link";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { BookingStatus } from "@prisma/client";
-import { sendBookingNotificationEmail } from "@/lib/email";
+import { sendBookingNotificationEmail } from "@/lib/email"; // keep this if you already had it
 
-type Props = {
+type SuccessPageProps = {
   searchParams: {
     bookingId?: string;
   };
 };
 
-export default async function BookingSuccessPage({ searchParams }: Props) {
+export default async function BookingSuccessPage({ searchParams }: SuccessPageProps) {
   const bookingId = searchParams.bookingId;
 
-  let booking:
-    | (Awaited<ReturnType<typeof prisma.booking.findUnique>> & {
-        car: { title: string; city: string };
-        user: { email: string | null } | null;
-      })
-    | null = null;
-
-  if (bookingId) {
-    try {
-      // 1) mark as PAID and fetch related data
-      booking = (await prisma.booking.update({
-        where: { id: bookingId },
-        data: { status: BookingStatus.PAID },
-        include: { car: true, user: true },
-      })) as any;
-
-      // 2) fire email notification (do not block page if it fails)
-      try {
-        await sendBookingNotificationEmail({
-          bookingId: booking.id,
-          carTitle: booking.car.title,
-          carCity: booking.car.city,
-          startDate: booking.startDate,
-          endDate: booking.endDate,
-          pickupLocation: booking.pickupLocation,
-          totalPriceCents: booking.totalPrice,
-          customerEmail: booking.user?.email ?? null,
-        });
-      } catch (emailError) {
-        console.error("[booking-email] Failed to send notification:", emailError);
-      }
-    } catch (e) {
-      console.error("[booking-success] Failed to update booking:", e);
-    }
+  // If there is no booking id in the URL, show 404
+  if (!bookingId) {
+    notFound();
   }
 
-  return (
-    <div className="max-w-md mx-auto text-center space-y-4">
-      <h1 className="text-2xl font-bold">Payment successful</h1>
-      <p className="text-sm text-gray-600">
-        Your booking and payment have been recorded.
-      </p>
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: {
+      car: true,
+      user: true,
+    },
+  });
 
-      {booking && (
-        <div className="text-sm text-gray-700 bg-white rounded-xl shadow p-4 text-left">
-          <p>
-            <strong>Car:</strong> {booking.car.title}
+  // ✅ This makes TypeScript sure `booking` is not null below
+  if (!booking) {
+    notFound();
+  }
+
+  // Fire-and-forget email (wrapped so build does not fail)
+  try {
+    await sendBookingNotificationEmail({
+      bookingId: booking.id,
+      carTitle: booking.car.title,
+      carCity: booking.car.city,
+      startDate: booking.startDate,
+      endDate: booking.endDate,
+      totalPrice: booking.totalPrice,
+      customerEmail: booking.user.email,
+    });
+  } catch (err) {
+    console.error("Failed to send booking notification email", err);
+  }
+
+  const totalDays =
+    Math.ceil(
+      (booking.endDate.getTime() - booking.startDate.getTime()) /
+        (1000 * 60 * 60 * 24)
+    ) || 1;
+
+  return (
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="max-w-lg w-full bg-white rounded-3xl shadow-lg border border-gray-200 p-8 space-y-6 text-center">
+        <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 mx-auto">
+          <svg
+            className="w-7 h-7"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+        </div>
+
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+          Booking confirmed
+        </h1>
+        <p className="text-sm text-gray-600">
+          Your trip is locked in. We have sent a confirmation email with the
+          booking details.
+        </p>
+
+        <div className="mt-4 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-left space-y-2">
+          <p className="text-sm font-semibold text-gray-900">
+            {booking.car.title}
           </p>
-          <p>
-            <strong>Dates:</strong>{" "}
-            {booking.startDate.toDateString()} –{" "}
-            {booking.endDate.toDateString()}
+          <p className="text-xs text-gray-600">
+            {booking.car.year} • {booking.car.seats} seats •{" "}
+            {booking.car.transmission.toLowerCase()}
           </p>
-          <p>
-            <strong>Pickup:</strong> {booking.pickupLocation}
+          <p className="text-xs text-gray-600">
+            {booking.car.city} • {totalDays} day rental
           </p>
-          <p>
-            <strong>Total:</strong> ${(booking.totalPrice / 100).toFixed(2)}
-          </p>
-          <p>
-            <strong>Status:</strong> {booking.status}
+          <p className="text-sm font-bold text-gray-900 mt-2">
+            Total: ${(booking.totalPrice / 100).toFixed(2)}
           </p>
         </div>
-      )}
 
-      <a
-        href="/cars"
-        className="inline-block mt-4 px-4 py-2 rounded-lg bg-black text-white text-sm font-semibold hover:bg-gray-900"
-      >
-        Back to cars
-      </a>
+        <div className="flex flex-col sm:flex-row gap-3 mt-4 justify-center">
+          <Link
+            href="/account"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-gray-900 to-gray-800 text-white text-sm font-bold hover:from-gray-800 hover:to-gray-700 transition-all shadow-md hover:shadow-lg"
+          >
+            View my bookings
+          </Link>
+          <Link
+            href="/cars"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Browse more cars
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
