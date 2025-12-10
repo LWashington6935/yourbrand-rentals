@@ -1,6 +1,5 @@
-"use client";
-
 /* eslint-disable react/no-unescaped-entities */
+"use client";
 
 import Link from "next/link";
 import { useState } from "react";
@@ -28,7 +27,7 @@ export default function AccountPage() {
   if (status === "loading") {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="flex items-center gap-3 text-sm text-gray-700 bg-white px-4 py-3 rounded-2xl shadow border border-gray-200">
+        <div className="flex items-center gap-3 text-sm text-gray-700 bg-white px-4 py-3 rounded-2xlshadow border border-gray-200">
           <svg
             className="animate-spin h-4 w-4"
             fill="none"
@@ -452,7 +451,7 @@ export default function AccountPage() {
               </div>
             )}
 
-            {/* Profile Tab (demo) */}
+            {/* Profile Tab */}
             {activeTab === "profile" && (
               <div className="space-y-6">
                 <div>
@@ -522,7 +521,7 @@ export default function AccountPage() {
               </div>
             )}
 
-            {/* Payment Tab (demo) */}
+            {/* Payment Tab */}
             {activeTab === "payment" && (
               <div className="space-y-6">
                 <div>
@@ -683,7 +682,7 @@ export default function AccountPage() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 9 0 0118 0z"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
             </div>
