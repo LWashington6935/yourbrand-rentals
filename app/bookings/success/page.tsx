@@ -35,14 +35,14 @@ export default async function BookingSuccessPage({
 
   const b = booking;
 
-  // Fire-and-forget email – pass Date objects directly
+  // Fire-and-forget email
   try {
     await sendBookingNotificationEmail({
       bookingId: b.id,
       carTitle: b.car.title,
       carCity: b.car.city,
-      startDate: b.startDate,
-      endDate: b.endDate,
+      startDate: b.startDate as Date,
+      endDate: b.endDate as Date,
       customerEmail: b.user.email ?? "",
     });
   } catch (err) {
