@@ -41,8 +41,8 @@ export default async function BookingSuccessPage({
       bookingId: b.id,
       carTitle: b.car.title,
       carCity: b.car.city,
-      startDate: b.startDate,  // Changed: pass Date directly
-      endDate: b.endDate,      // Changed: pass Date directly
+      startDate: b.startDate,
+      endDate: b.endDate,
       customerEmail: b.user.email ?? "",
     });
   } catch (err) {
@@ -79,7 +79,7 @@ export default async function BookingSuccessPage({
             Booking confirmed!
           </h1>
           <p className="text-base text-gray-600">
-            Your trip is locked in. We've sent a confirmation email with your
+            Your trip is locked in. We&apos;ve sent a confirmation email with your
             booking details.
           </p>
         </div>
