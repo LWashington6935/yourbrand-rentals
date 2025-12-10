@@ -2,20 +2,22 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { sendBookingNotificationEmail } from "@/lib/email"; // keep this if you already had it
+import { sendBookingNotificationEmail } from "@/lib/email";
 
 type SuccessPageProps = {
-  searchParams: {
+  searchParams?: {
     bookingId?: string;
   };
 };
 
-export default async function BookingSuccessPage({ searchParams }: SuccessPageProps) {
+export default async function BookingSuccessPage({
+  searchParams = {},
+}: SuccessPageProps) {
   const bookingId = searchParams.bookingId;
 
-  // If there is no booking id in the URL, show 404
+  // No booking id -> 404
   if (!bookingId) {
-    notFound();
+    return notFound();
   }
 
   const booking = await prisma.booking.findUnique({
@@ -26,21 +28,24 @@ export default async function BookingSuccessPage({ searchParams }: SuccessPagePr
     },
   });
 
-  // ✅ This makes TypeScript sure `booking` is not null below
+  // Booking not found -> 404
   if (!booking) {
-    notFound();
+    return notFound();
   }
 
-  // Fire-and-forget email (wrapped so build does not fail)
+  // ✅ From here on, tell TypeScript "booking is definitely not null"
+  const b = booking!;
+
+  // Fire-and-forget email – if it fails, we just log it
   try {
     await sendBookingNotificationEmail({
-      bookingId: booking.id,
-      carTitle: booking.car.title,
-      carCity: booking.car.city,
-      startDate: booking.startDate,
-      endDate: booking.endDate,
-      totalPrice: booking.totalPrice,
-      customerEmail: booking.user.email,
+      bookingId: b.id,
+      carTitle: b.car.title,
+      carCity: b.car.city,
+      startDate: b.startDate,
+      endDate: b.endDate,
+      totalPrice: b.totalPrice,
+      customerEmail: b.user.email,
     });
   } catch (err) {
     console.error("Failed to send booking notification email", err);
@@ -48,7 +53,7 @@ export default async function BookingSuccessPage({ searchParams }: SuccessPagePr
 
   const totalDays =
     Math.ceil(
-      (booking.endDate.getTime() - booking.startDate.getTime()) /
+      (b.endDate.getTime() - b.startDate.getTime()) /
         (1000 * 60 * 60 * 24)
     ) || 1;
 
@@ -75,23 +80,23 @@ export default async function BookingSuccessPage({ searchParams }: SuccessPagePr
           Booking confirmed
         </h1>
         <p className="text-sm text-gray-600">
-          Your trip is locked in. We have sent a confirmation email with the
+          Your trip is locked in. We’ve sent a confirmation email with your
           booking details.
         </p>
 
         <div className="mt-4 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-left space-y-2">
           <p className="text-sm font-semibold text-gray-900">
-            {booking.car.title}
+            {b.car.title}
           </p>
           <p className="text-xs text-gray-600">
-            {booking.car.year} • {booking.car.seats} seats •{" "}
-            {booking.car.transmission.toLowerCase()}
+            {b.car.year} • {b.car.seats} seats •{" "}
+            {b.car.transmission.toLowerCase()}
           </p>
           <p className="text-xs text-gray-600">
-            {booking.car.city} • {totalDays} day rental
+            {b.car.city} • {totalDays} day rental
           </p>
           <p className="text-sm font-bold text-gray-900 mt-2">
-            Total: ${(booking.totalPrice / 100).toFixed(2)}
+            Total: ${(b.totalPrice / 100).toFixed(2)}
           </p>
         </div>
 
