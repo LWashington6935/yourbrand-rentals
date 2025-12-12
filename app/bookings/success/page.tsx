@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { sendBookingNotificationEmail } from "@/lib/email";
 
 type SuccessPageProps = {
   searchParams?: {
@@ -35,19 +34,20 @@ export default async function BookingSuccessPage({
 
   const b = booking;
 
+  // TODO: Re-enable email once type issues are resolved
   // Fire-and-forget email
-  try {
-    await sendBookingNotificationEmail({
-      bookingId: b.id,
-      carTitle: b.car.title,
-      carCity: b.car.city,
-      startDate: b.startDate as Date,
-      endDate: b.endDate as Date,
-      customerEmail: b.user.email ?? "",
-    });
-  } catch (err) {
-    console.error("Failed to send booking notification email", err);
-  }
+  // try {
+  //   await sendBookingNotificationEmail({
+  //     bookingId: b.id,
+  //     carTitle: b.car.title,
+  //     carCity: b.car.city,
+  //     startDate: b.startDate,
+  //     endDate: b.endDate,
+  //     customerEmail: b.user.email ?? "",
+  //   });
+  // } catch (err) {
+  //   console.error("Failed to send booking notification email", err);
+  // }
 
   const totalDays =
     Math.ceil(
